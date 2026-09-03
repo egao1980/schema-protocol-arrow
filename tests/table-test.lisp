@@ -1,0 +1,21 @@
+(in-package #:schema-protocol-arrow/tests)
+
+(deftest objects-roundtrip
+  (defschema %ar-row ()
+    (name string)
+    (age integer :optional t)
+    (:extra :forbid))
+  (flet ((row (name age)
+           (let ((ht (make-hash-table :test #'equal)))
+             (setf (gethash "name" ht) name
+                   (gethash "age" ht) age)
+             (parse '%ar-row ht))))
+    (let* ((pkg (symbol-package '%ar-row))
+           (name-s (intern "NAME" pkg))
+           (age-s (intern "AGE" pkg))
+           (table (table-from-objects '%ar-row (list (row "Ada" 36) (row "Bob" 1))))
+           (back (objects-from-table '%ar-row table)))
+      (ok (= 2 (arrow-protocol:arrow-table-num-rows table)))
+      (ok (string= "Ada" (slot-value (aref back 0) name-s)))
+      (ok (= 36 (slot-value (aref back 0) age-s)))
+      (ok (string= "Bob" (slot-value (aref back 1) name-s))))))
