@@ -131,7 +131,7 @@
   (let ((fn (find-symbol "PARQUET-SCHEMA" "ARROW-PROTOCOL")))
     (if (not (and fn (fboundp fn)))
         (skip "arrow-protocol has no parquet-schema")
-        (flet ((round (bytes name)
+        (flet ((check-parsed (bytes name)
                  (let* ((class (parse-schema bytes :format :arrow :name name))
                         (pkg (symbol-package (class-name class)))
                         (ht (make-hash-table :test #'equal)))
@@ -152,6 +152,6 @@
                                                :compression :uncompressed
                                                :dictionary nil
                                                :store-schema nil)))
-            (round with-kv 'compiled-from-parquet)
-            (round (funcall fn with-kv) 'compiled-from-parquet-schema)
-            (round no-kv 'compiled-from-parquet-tree))))))
+            (check-parsed with-kv 'compiled-from-parquet)
+            (check-parsed (funcall fn with-kv) 'compiled-from-parquet-schema)
+            (check-parsed no-kv 'compiled-from-parquet-tree))))))
