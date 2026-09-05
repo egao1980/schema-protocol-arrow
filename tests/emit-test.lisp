@@ -67,3 +67,10 @@
     (ok (member "n" names :test #'string=))
     (ok (member "code" names :test #'string=))
     (ok (every #'arrow-protocol:arrow-field-nullable fields))))
+
+(deftest format-registry
+  (defschema %reg-ar ()
+    (name string))
+  (ok (arrow-protocol:arrow-schema-p (emit-schema '%reg-ar :format :arrow)))
+  (ok (arrow-protocol:arrow-schema-p (arrow-schema '%reg-ar)))
+  (ok (signals (parse-schema nil :format :arrow) 'schema-error)))

@@ -1,8 +1,9 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  ;; OCI pin may lack ARROW-SCHEMA — intern so :import-from works.
-  (let* ((pkg (find-package '#:schema-protocol))
-         (sym (intern "ARROW-SCHEMA" pkg)))
-    (export sym pkg)))
+  ;; OCI pin may lack ARROW-SCHEMA / format registry — intern so :import-from works.
+  (let ((pkg (find-package '#:schema-protocol)))
+    (dolist (name '("ARROW-SCHEMA" "SCHEMA-FORMAT-BACKEND" "REGISTER-SCHEMA-FORMAT"
+                    "BACKEND-EMIT-SCHEMA" "BACKEND-PARSE-SCHEMA"))
+      (export (intern name pkg) pkg))))
 
 (defpackage #:schema-protocol-arrow
   (:use #:cl)
@@ -33,6 +34,10 @@
                 #:slot-minimum
                 #:slot-maximum
                 #:arrow-schema
+                #:schema-format-backend
+                #:register-schema-format
+                #:backend-emit-schema
+                #:backend-parse-schema
                 #:parse
                 #:dump
                 #:schema-error)

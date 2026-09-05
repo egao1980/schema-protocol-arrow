@@ -1,9 +1,10 @@
 (defsystem "schema-protocol-arrow"
-  :version "0.1.0"
+  :version "0.1.1"
   :description "Arrow schema emit + table↔objects for schema-protocol"
   :author "egao1980"
   :license "MIT"
   :depends-on ("schema-protocol" "arrow-protocol" "closer-mop")
+  :properties (:cl-repo (:ci (:sources (("schema-protocol" :oci) ("arrow-protocol" :oci)))))
   :serial t
   :pathname "src"
   :components ((:file "package")
