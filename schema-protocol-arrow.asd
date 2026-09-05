@@ -4,7 +4,7 @@
   :author "egao1980"
   :license "MIT"
   :depends-on ("schema-protocol" "arrow-protocol" "closer-mop")
-  :properties (:cl-repo (:ci (:sources (("schema-protocol" :oci) ("arrow-protocol" :oci)))))
+  :properties (:cl-repo (:ci ()))
   :serial t
   :pathname "src"
   :components ((:file "package")
