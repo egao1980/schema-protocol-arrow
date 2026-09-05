@@ -8,7 +8,8 @@ Does **not** own bytes — [`arrow-protocol`](https://github.com/egao1980/arrow-
 (asdf:load-system "schema-protocol-arrow")
 
 (stack-schema-arrow:emit 'user)
-(stack-schema:arrow-schema 'user)
+(stack-schema:emit-schema 'user :format :arrow)
+(stack-schema:arrow-schema 'user)   ; same
 
 (let ((table (stack-schema-arrow:table-from-objects 'user users)))
   (serdes-protocol:encode table :format :parquet)
@@ -18,7 +19,7 @@ Does **not** own bytes — [`arrow-protocol`](https://github.com/egao1980/arrow-
 
 Single-object `dump obj :format :arrow` stays the serdes hash-table path — it does **not** wrap one object as a 1-row table.
 
-Compile Arrow schema → `defschema` is deferred.
+`parse-schema` for `:arrow` is not implemented (signals `schema-error`).
 
 CI: canned [`cl-repository`](https://github.com/egao1980/cl-repository).
 
