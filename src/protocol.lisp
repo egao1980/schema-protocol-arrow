@@ -7,10 +7,12 @@
   (declare (ignore backend))
   (emit schema))
 
-(defmethod backend-parse-schema ((backend arrow-schema-backend) source &key &allow-other-keys)
-  (declare (ignore backend source))
-  (error 'schema-error
-         :message "schema-protocol-arrow does not parse Arrow schema files"))
+(defmethod backend-parse-schema ((backend arrow-schema-backend) source
+                                 &key name package &allow-other-keys)
+  (declare (ignore backend))
+  (apply #'compile-schema source
+         (append (when name (list :name name))
+                 (when package (list :package package)))))
 
 (eval-when (:load-toplevel :execute)
   (register-schema-format :arrow (make-instance 'arrow-schema-backend)))

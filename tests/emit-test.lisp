@@ -73,4 +73,85 @@
     (name string))
   (ok (arrow-protocol:arrow-schema-p (emit-schema '%reg-ar :format :arrow)))
   (ok (arrow-protocol:arrow-schema-p (arrow-schema '%reg-ar)))
-  (ok (signals (parse-schema nil :format :arrow) 'schema-error)))
+  (ok (signals (parse-schema nil :format :arrow) 'arrow-schema-error)))
+
+(deftest compile-and-parse
+  (defschema %ar-note ()
+    (title string)
+    (body (or :null string) :optional t))
+  (let* ((class (compile-schema (emit '%ar-note) :name 'compiled-ar-note))
+         (pkg (symbol-package (class-name class)))
+         (ht (make-hash-table :test #'equal)))
+    (ok (schema-class-p class))
+    (setf (gethash "title" ht) "hi"
+          (gethash "body" ht) :null)
+    (let ((obj (parse class ht)))
+      (ok (equal "hi" (slot-value obj (intern "TITLE" pkg)))))))
+
+(deftest compile-nested
+  (defschema %ar-home ()
+    (city string))
+  (defschema %ar-has-home ()
+    (home %ar-home)
+    (tags (vector string)))
+  (let* ((class (parse-schema (emit '%ar-has-home) :format :arrow :name 'compiled-ar-home))
+         (pkg (symbol-package (class-name class)))
+         (ht (make-hash-table :test #'equal)))
+    (setf (gethash "home" ht) (let ((h (make-hash-table :test #'equal)))
+                                (setf (gethash "city" h) "London")
+                                h)
+          (gethash "tags" ht) #("lisp"))
+    (let* ((obj (parse class ht))
+           (home (slot-value obj (intern "HOME" pkg))))
+      (ok (equal "London" (slot-value home (intern "CITY" (symbol-package (class-name (class-of home))))))))))
+
+(deftest parse-ipc-via-backend
+  (defschema %ar-ipc-note ()
+    (title string)
+    (n integer))
+  (let* ((obj (parse '%ar-ipc-note
+                     (let ((h (make-hash-table :test #'equal)))
+                       (setf (gethash "title" h) "hi" (gethash "n" h) 1)
+                       h)))
+         (table (table-from-objects '%ar-ipc-note (list obj)))
+         (bytes (arrow-protocol:encode-ipc table :format :stream))
+         (class (parse-schema bytes :format :arrow :name 'compiled-from-ipc))
+         (pkg (symbol-package (class-name class)))
+         (ht (make-hash-table :test #'equal)))
+    (ok (schema-class-p class))
+    (setf (gethash "title" ht) "hi" (gethash "n" ht) 1)
+    (let ((parsed (parse class ht)))
+      (ok (equal "hi" (slot-value parsed (intern "TITLE" pkg))))
+      (ok (eql 1 (slot-value parsed (intern "N" pkg)))))))
+
+(deftest parse-parquet-via-backend
+  (defschema %ar-pq-note ()
+    (title string)
+    (n integer))
+  (let ((fn (find-symbol "PARQUET-SCHEMA" "ARROW-PROTOCOL")))
+    (if (not (and fn (fboundp fn)))
+        (skip "arrow-protocol has no parquet-schema")
+        (flet ((round (bytes name)
+                 (let* ((class (parse-schema bytes :format :arrow :name name))
+                        (pkg (symbol-package (class-name class)))
+                        (ht (make-hash-table :test #'equal)))
+                   (ok (schema-class-p class) (string name))
+                   (setf (gethash "title" ht) "hi" (gethash "n" ht) 1)
+                   (let ((parsed (parse class ht)))
+                     (ok (equal "hi" (slot-value parsed (intern "TITLE" pkg))))
+                     (ok (eql 1 (slot-value parsed (intern "N" pkg))))))))
+          (let* ((obj (parse '%ar-pq-note
+                             (let ((h (make-hash-table :test #'equal)))
+                               (setf (gethash "title" h) "hi" (gethash "n" h) 1)
+                               h)))
+                 (table (table-from-objects '%ar-pq-note (list obj)))
+                 (with-kv (arrow-protocol:encode table :format :parquet
+                                                 :compression :uncompressed
+                                                 :dictionary nil))
+                 (no-kv (arrow-protocol:encode table :format :parquet
+                                               :compression :uncompressed
+                                               :dictionary nil
+                                               :store-schema nil)))
+            (round with-kv 'compiled-from-parquet)
+            (round (funcall fn with-kv) 'compiled-from-parquet-schema)
+            (round no-kv 'compiled-from-parquet-tree))))))

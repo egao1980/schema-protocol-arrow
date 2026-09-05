@@ -1,3 +1,6 @@
+(defpackage #:schema-protocol-arrow.generated
+  (:use))
+
 (eval-when (:compile-toplevel :load-toplevel :execute)
   ;; OCI pin may lack ARROW-SCHEMA / format registry — intern so :import-from works.
   (let ((pkg (find-package '#:schema-protocol)))
@@ -9,6 +12,7 @@
   (:use #:cl)
   (:nicknames #:stack-schema-arrow)
   (:import-from #:closer-mop
+                #:ensure-class
                 #:slot-definition-name
                 #:slot-definition-type)
   (:import-from #:schema-protocol
@@ -51,10 +55,13 @@
                 #:arrow-field-nullable
                 #:table-from-rows
                 #:table-to-rows
-                #:arrow-table-p)
+                #:arrow-table-p
+                #:arrow-table-schema
+                #:decode-ipc)
   (:export #:arrow-schema-error
            #:arrow-schema-error-message
            #:emit
+           #:compile-schema
            #:table-from-objects
            #:objects-from-table
            #:arrow-schema))
