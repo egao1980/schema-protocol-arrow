@@ -1,6 +1,6 @@
 (defsystem "schema-protocol-arrow"
-  :version "0.1.1"
-  :description "Arrow schema emit + table↔objects for schema-protocol"
+  :version "0.1.2"
+  :description "Arrow schema emit/parse + table↔objects for schema-protocol"
   :author "egao1980"
   :license "MIT"
   :depends-on ("schema-protocol" "arrow-protocol" "closer-mop")
@@ -9,6 +9,7 @@
   :components ((:file "package")
                (:file "conditions")
                (:file "emit")
+               (:file "compile")
                (:file "table")
                (:file "protocol"))
   :in-order-to ((test-op (test-op "schema-protocol-arrow/tests"))))

@@ -19,7 +19,12 @@ Does **not** own bytes — [`arrow-protocol`](https://github.com/egao1980/arrow-
 
 Single-object `dump obj :format :arrow` stays the serdes hash-table path — it does **not** wrap one object as a 1-row table.
 
-`parse-schema` for `:arrow` is not implemented (signals `schema-error`).
+`parse-schema` for `:arrow` rebuilds a **lossy** `schema-class` from an `arrow-schema`, field JSON, IPC schema bytes, or a Parquet file (footer field 5 `ARROW:schema`, else the SchemaElement tree): primitives / lists / structs / nullability only. No constraints, no enums, no tagged-union identity (flattened columns → one class, `:extra :allow`).
+
+```lisp
+(parse-schema (stack-arrow:parquet-schema bytes) :format :arrow)
+(parse-schema bytes :format :arrow)   ; PAR1 / IPC accepted directly
+```
 
 CI: canned [`cl-repository`](https://github.com/egao1980/cl-repository).
 
