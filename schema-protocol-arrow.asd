@@ -1,6 +1,6 @@
 (defsystem "schema-protocol-arrow"
   :version "0.1.2"
-  :description "Arrow schema emit + table↔objects for schema-protocol"
+  :description "Arrow schema emit/parse + table↔objects for schema-protocol"
   :author "egao1980"
   :license "MIT"
   :depends-on ("schema-protocol" "arrow-protocol" "closer-mop")
